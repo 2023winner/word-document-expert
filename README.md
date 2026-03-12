@@ -100,7 +100,3 @@ MIT License
 ## 👥 贡献
 
 欢迎提交 Issue 和 Pull Request！
-
-## 🙏 致谢
-
-基于神经网络作业实践经验总结
