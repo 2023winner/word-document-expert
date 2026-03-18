@@ -245,14 +245,14 @@ import os
 
 def verify_document(docx_path):
     content = pypandoc.convert_file(docx_path, 'markdown')
-    
+
     checks = {
         '标题': '作业' in content,
         '公式': '$' in content,
         '图片': '图 1' in content,
         '参考文献': '参考文献' in content
     }
-    
+
     for check, result in checks.items():
         status = '✓' if result else '✗'
         print(f'{status} {check}')
@@ -400,6 +400,12 @@ python -m win32com.client.Dispatch("Word.Application")
   - Pandoc 转换配置
   - 图表生成规范
   - 常见问题解决方案
+- **v1.1** - 新增作业报告处理经验
+  - 读取并修改现有文档
+  - 提取文档中的图片
+  - 填写横线位置文字
+  - 识别问题位置并插入答案
+  - 插入表格
 
 ---
 
@@ -419,3 +425,183 @@ python -m win32com.client.Dispatch("Word.Application")
 - Markdown 模板：homework_template.md
 - 图表生成脚本：generate_figures.py
 - 验证脚本：verify_document.py
+
+---
+
+## Word文档处理经验总结 - 作业报告篇
+
+### 经验一：读取现有Word文档并修改
+
+#### 问题背景
+用户需要保留原始作业文档的格式（Logo、字体、布局），只在特定位置插入答案。
+
+#### 解决方案
+
+```python
+from docx import Document
+import copy
+
+# 方法1：读取并复制所有元素
+doc = Document('原始文档.docx')
+new_doc = Document()
+
+# 复制所有元素（保留格式）
+for element in doc.element.body:
+    new_doc.element.body.append(copy.deepcopy(element))
+
+# 方法2：直接在原文档上修改
+doc = Document('原始文档.docx')
+# 修改内容
+doc.save('修改后文档.docx')
+```
+
+#### 注意事项
+- 使用`copy.deepcopy()`可以保留原始格式
+- 直接修改原文档时注意备份
+
+---
+
+### 经验二：提取Word文档中的图片
+
+#### 解决方案
+
+```python
+from docx import Document
+import os
+
+doc = Document('文档.docx')
+image_dir = 'images'
+os.makedirs(image_dir, exist_ok=True)
+
+# 遍历所有关系（图片）
+for rel in doc.part.rels.values():
+    if 'image' in rel.target_ref:
+        img_data = rel.target_part.blob
+        img_ext = rel.target_ref.split('.')[-1]
+        img_name = f'image.{img_ext}'
+        with open(f'{image_dir}/{img_name}', 'wb') as f:
+            f.write(img_data)
+        print(f'Saved: {img_name}')
+```
+
+#### 注意事项
+- 图片作为关系存储在文档的rels中
+- 需要提取扩展名来确定格式
+
+---
+
+### 经验三：填写横线位置的文字
+
+#### 原始文档格式
+通常格式为：`姓    名：____________`
+
+#### 解决方案
+
+```python
+doc = Document('文档.docx')
+
+for para in doc.paragraphs:
+    if '姓    名：' in para.text:
+        # 在横线位置填写
+        para.text = '姓    名：' + ' ' * 10 + '张三'
+    if '学    号：' in para.text:
+        para.text = '学    号：' + ' ' * 10 + '1234567890'
+```
+
+#### 注意事项
+- 空格数量根据横线长度调整
+- 需要精确匹配原始文本格式
+
+---
+
+### 经验四：识别问题位置并插入答案
+
+#### 挑战
+需要将答案插入到每个问题的后面，而不是文档末尾。
+
+#### 解决方案
+
+```python
+# 1. 找到每个问题的起始位置
+question_positions = {}
+for i, para in enumerate(doc.paragraphs):
+    text = para.text.strip()
+    if '问题1关键词' in text:
+        question_positions['1'] = i
+    elif '问题2关键词' in text:
+        question_positions['2'] = i
+    # ...
+
+# 2. 找到每个问题的结束位置
+def find_question_end(start_idx, all_paras):
+    """找到问题结束位置"""
+    keywords = ['问题1关键词', '问题2关键词', ...]
+    for i in range(start_idx + 1, len(all_paras)):
+        text = all_paras[i].text.strip()
+        if any(kw in text for kw in keywords):
+            return i - 1
+    return len(all_paras) - 1
+
+# 3. 从后往前插入（避免索引变化）
+sorted_questions = sorted(question_positions.items(), key=lambda x: x[1], reverse=True)
+for q_num, pos in sorted_questions:
+    # 插入答案内容
+    doc.add_paragraph(f'【第{q_num}题答案】')
+    doc.add_paragraph('SQL语句...')
+    # 添加表格
+    table = doc.add_table(rows=3, cols=3)
+```
+
+#### 注意事项
+- 从后往前插入可以避免索引变化问题
+- 需要根据具体文档结构调整关键词
+
+---
+
+### 经验五：插入表格
+
+#### 解决方案
+
+```python
+# 方法1：创建新表格
+table = doc.add_table(rows=3, cols=3)
+table.style = 'Light Grid Accent 1'  # 可选样式
+
+# 填充数据
+data = [
+    ('Header1', 'Header2', 'Header3'),
+    ('Data1', 'Data2', 'Data3'),
+]
+for i, row_data in enumerate(data):
+    for j, val in enumerate(row_data):
+        table.rows[i].cells[j].text = val
+```
+
+#### 常见问题
+- 样式名称可能不存在，使用`table.style = None`可避免错误
+- 中文字体在某些环境下可能显示问题
+
+---
+
+### 经验六：常用Python库
+
+| 库名 | 用途 |
+|------|------|
+| python-docx | 读写Word文档 |
+| pypandoc | 格式转换 |
+| pypdf | 读取PDF |
+
+---
+
+### 总结
+
+处理Word文档的核心思路：
+1. **先读取**：了解文档结构
+2. **再定位**：找到需要插入内容的位置
+3. **后插入**：使用正确的方法插入内容
+4. **保存文件**：注意文件是否被占用
+
+未来可以改进的方向：
+- 使用pywin32保留更完整的格式
+- 自动识别表格结构
+- 更好的图片处理
