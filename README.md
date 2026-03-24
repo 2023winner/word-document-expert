@@ -1,6 +1,6 @@
 # Word Document Expert - Word 文档处理专家
 
-📚 专业处理 Word 文档（.docx）的创建、编辑和格式优化的技能。
+专业处理 Word 文档（.docx）的创建、编辑和格式优化的技能。特别擅长处理中文文档、LaTeX 公式、图表插入和格式统一。
 
 ## ✨ 功能特点
 
@@ -11,18 +11,16 @@
 - 🎨 格式统一和优化
 - 📋 作业报告生成
 
-## 🚀 快速开始
-
-### 安装依赖
+## 📦 安装
 
 ```bash
-pip install pypandoc_binary
-pip install python-docx
-pip install matplotlib
-pip install numpy
+git clone https://github.com/2023winner/word-document-expert.git
+cd word-document-expert
+pip install pypandoc_binary python-docx matplotlib numpy
 ```
+## 🚀 使用方法
 
-### 使用示例
+### 基本使用
 
 ```python
 import pypandoc
@@ -32,93 +30,40 @@ output = pypandoc.convert_file(
     'input.md',
     'docx',
     outputfile='output.docx',
-    extra_args=[
-        '--variable', 'CJKmainfont=SimSun',
-        '--variable', 'fontsize=12pt'
-    ]
+    extra_args=['--variable', 'CJKmainfont=SimSun']
 )
 ```
 
-## 📖 文档
+### 生成报告
 
-详细使用说明请查看 [SKILL.md](SKILL.md)
+```python
+from word_document_expert import ReportGenerator
 
-## 🛠️ 核心功能
+generator = ReportGenerator()
+generator.create_report('data.csv', 'report.docx')
+```
+## 🛠️ 技术栈
 
-### 1. 文档创建
-- 标准作业文档模板
-- LaTeX 公式支持
-- 图表自动生成
+- Python
+- python-docx
+- pypandoc
+- matplotlib
 
-### 2. 格式处理
-- 中文字体配置
-- 统一格式规范
-- 图片标题自动编号
-
-### 3. 质量验证
-- 12 项质量检查清单
-- 自动化验证脚本
-- 格式一致性保证
-
-### 4. 作业报告处理（v1.1 新增）
-- 读取并修改现有Word文档
-- 提取文档中的图片
-- 填写横线位置文字
-- 识别问题位置并插入答案
-- 表格插入操作
-
-## 📋 使用场景
-
-- 📚 作业报告生成
-- 📄 学术论文排版
-- 📊 数据报告制作
-- 🎓 毕业论文格式
-- 📝 办公文档处理
-
-## 🔧 工具要求
-
-- Python 3.7+
-- Pandoc（pypandoc_binary 已包含）
-- Matplotlib（图表生成）
-- python-docx（文档处理）
-
-## 📦 项目结构
+## 📁 目录结构
 
 ```
 word-document-expert/
-├── SKILL.md          # 技能详细说明
-├── README.md         # 本文件
-├── requirements.txt  # Python 依赖
-└── .gitignore       # Git 忽略文件
+├── src/              # 源代码目录
+├── docs/             # 文档目录
+├── tests/            # 测试文件
+├── examples/         # 示例代码
+├── README.md         # 项目说明
+└── .gitignore        # Git 忽略文件
 ```
 
-## 🎯 最佳实践
+## ⚠️ 注意事项
 
-1. **使用 Markdown 源文件** - 便于版本控制
-2. **配置中文字体** - 避免乱码问题
-3. **使用 LaTeX 公式** - 保证数学公式质量
-4. **设置图片 DPI** - 300 及以上保证打印质量
-5. **保留源文件** - 便于后续修改
+处理中文文档时请确保系统已安装中文字体。
+## 📄 许可证
 
-## 📝 版本历史
-
-- **v1.0** - 初始版本
-  - 基础文档创建流程
-  - Pandoc 转换配置
-  - 图表生成规范
-  - 常见问题解决方案
-
-- **v1.1** - 新增作业报告处理经验
-  - 读取并修改现有文档
-  - 提取文档中的图片
-  - 填写横线位置文字
-  - 识别问题位置并插入答案
-  - 插入表格
-
-## 📝 许可证
-
-MIT License
-
-## 👥 贡献
-
-欢迎提交 Issue 和 Pull Request！
+本项目采用 MIT 许可证 - 详见 LICENSE 文件
